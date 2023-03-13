@@ -320,7 +320,6 @@ fn install_kinoite_nvidia(vers: String, restart: bool) {
 fn set_kargs() -> bool {
     // Set kargs after the rebase process
     let kargs = Command::new("rpm-ostree")
-        .arg("kargs")
         .arg("--append=rd.driver.blacklist=nouveau")
         .arg("--append=modprobe.blacklist=nouveau")
         .arg("--append=nvidia-drm.modeset=1")
