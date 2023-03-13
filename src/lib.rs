@@ -3,8 +3,10 @@ use std::error::Error;
 use std::process::{Command, Stdio};
 use std::str;
 
+// Generic Result type that allows for errors
 type GenResult<T> = Result<T, Box<dyn Error>>;
 
+// Struct to hold the arguments
 #[derive(Debug)]
 pub struct Config {
     desktop_env: Vec<String>,
@@ -12,6 +14,7 @@ pub struct Config {
     auto_reboot: bool,
 }
 
+// Sets up the arguments that can be passed and puts them into the Config struct
 pub fn get_args() -> GenResult<Config> {
     let matches = App::new("ublue_it_cli")
         .version("0.1.0")
@@ -52,6 +55,7 @@ pub fn get_args() -> GenResult<Config> {
     })
 }
 
+// The main logic
 pub fn run(config: Config) -> GenResult<()> {
     let fedora_version: String = get_fedora_version();
     let de: String = config.desktop_env[0].clone().to_lowercase();
@@ -79,6 +83,7 @@ pub fn run(config: Config) -> GenResult<()> {
     Ok(())
 }
 
+// Uses shell commands cat and cut to get the version of Fedora the user is on
 fn get_fedora_version() -> String {
     let fedora_release = Command::new("cat")
         .arg("/etc/fedora-release")
@@ -98,6 +103,7 @@ fn get_fedora_version() -> String {
     return fedora_version.to_string();
 }
 
+// Logic to install silverblue with any valid desktop environment
 fn install_silverblue(vers: String, dsk_env: String, restart: bool) {
     println!("Installing, please be patient...");
 
@@ -183,6 +189,7 @@ fn install_silverblue(vers: String, dsk_env: String, restart: bool) {
     }
 }
 
+// Installs silverblue nvidia version with any valid desktop environment
 fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
     println!("Installing, please be patient...");
 
@@ -275,6 +282,7 @@ fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
     }
 }
 
+// Installs kinoite image
 fn install_kinoite(vers: String, restart: bool) {
     println!("Installing, please be patient...");
 
@@ -294,6 +302,7 @@ fn install_kinoite(vers: String, restart: bool) {
     }
 }
 
+// Installs Kinoite nvidia image
 fn install_kinoite_nvidia(vers: String, restart: bool) {
     println!("Installing, please be patient...");
 
@@ -320,6 +329,7 @@ fn install_kinoite_nvidia(vers: String, restart: bool) {
 fn set_kargs() -> bool {
     // Set kargs after the rebase process
     let kargs = Command::new("rpm-ostree")
+        .arg("kargs")
         .arg("--append=rd.driver.blacklist=nouveau")
         .arg("--append=modprobe.blacklist=nouveau")
         .arg("--append=nvidia-drm.modeset=1")
