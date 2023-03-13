@@ -124,7 +124,8 @@ fn install_silverblue(vers: String, dsk_env: String, restart: bool) {
         }
         "lxqt" => {
             let install_process = Command::new("rpm-ostree")
-                .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/lxqt:{latest")
+                .arg("rebase")
+                .arg("ostree-unverified-registry:ghcr.io/ublue-os/lxqt:latest")
                 .arg("--experimental")
                 .status()
                 .expect("Could not start rebase process...\nTry again!");
@@ -159,7 +160,8 @@ fn install_silverblue(vers: String, dsk_env: String, restart: bool) {
         }
         "xfce" => {
             let install_process = Command::new("rpm-ostree")
-                .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/vauxite:{latest")
+                .arg("rebase")
+                .arg("ostree-unverified-registry:ghcr.io/ublue-os/vauxite:latest")
                 .arg("--experimental")
                 .status()
                 .expect("Could not start rebase process...\nTry again!");
@@ -187,7 +189,8 @@ fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
      match dsk_env.as_str() {
         "gnome" => {
             let install_process = Command::new("rpm-ostree")
-                .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/silverblue-nvidia:latest")
+                .arg("rebase")
+                .arg("ostree-unverified-registry:ghcr.io/ublue-os/silverblue-nvidia:latest")
                 .arg("--experimental")
                 .status()
                 .expect("Rebase process failed...\nTry again!");
@@ -207,7 +210,8 @@ fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
         }
         "lxqt" => {
             let install_process = Command::new("rpm-ostree")
-                .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/lxqt-nvidia:latest")
+                .arg("rebase")
+                .arg("ostree-unverified-registry:ghcr.io/ublue-os/lxqt-nvidia:latest")
                 .arg("--experimental")
                 .status()
                 .expect("Could not start rebase process...\nTry again!");
@@ -226,7 +230,8 @@ fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
         }
         "mate" => {
             let install_process = Command::new("rpm-ostree")
-                .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/mate-nvidia:latest")
+                .arg("rebase")
+                .arg("ostree-unverified-registry:ghcr.io/ublue-os/mate-nvidia:latest")
                 .arg("--experimental")
                 .status()
                 .expect("Could not start rebase process...\nTry again!");
@@ -245,7 +250,8 @@ fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
         }
         "xfce" => {
             let install_process = Command::new("rpm-ostree")
-                .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/vauxite-nvidia:latest")
+                .arg("rebase")
+                .arg("ostree-unverified-registry:ghcr.io/ublue-os/vauxite-nvidia:latest")
                 .arg("--experimental")
                 .status()
                 .expect("Could not start the rebase process...\nTry again!");
@@ -273,7 +279,8 @@ fn install_kinoite(vers: String, restart: bool) {
     println!("Installing, please be patient...");
 
     let install_process = Command::new("rpm-ostree")
-        .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/kinoite:latest")
+        .arg("rebase")
+        .arg("ostree-unverified-registry:ghcr.io/ublue-os/kinoite:latest")
         .arg("--experimental")
         .status()
         .expect("Could not start the rebase process...\n Try again!");
@@ -291,7 +298,8 @@ fn install_kinoite_nvidia(vers: String, restart: bool) {
     println!("Installing, please be patient...");
 
     let install_process = Command::new("rpm-ostree")
-        .arg("rebase ostree-unverified-registry:ghcr.io/ublue-os/kinoite-nvidia:latest")
+        .arg("rebase")
+        .arg("ostree-unverified-registry:ghcr.io/ublue-os/kinoite-nvidia:latest")
         .arg("--experimental")
         .status()
         .expect("Could not start the rebase process...\nTry again!");
