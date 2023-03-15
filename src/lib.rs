@@ -60,25 +60,7 @@ pub fn run(config: Config) -> GenResult<()> {
     let fedora_version: String = get_fedora_version();
     let de: String = config.desktop_env[0].clone().to_lowercase();
 
-    if !config.has_nvidia {
-        match de.as_str() {
-            "gnome" | "lxqt" | "mate" | "xfce" => install_silverblue(fedora_version, de, config.auto_reboot),
-            "kde" => install_kinoite(fedora_version, config.auto_reboot),
-            _ => {
-                    eprintln!("Invalid desktop environment given!");
-                    std::process::exit(1);
-            }
-        }
-    } else {
-        match de.as_str() {
-            "gnome" | "lxqt" | "mate" | "xfce" => install_silverblue_nvidia(fedora_version, de, config.auto_reboot),
-            "kde" => install_kinoite_nvidia(fedora_version, config.auto_reboot),
-            _ => {
-                eprintln!("Invalid desktop environment given!");
-                std::process::exit(1);
-            }
-        }
-    }
+    rebase_img(fedora_version, de, config.has_nvidia, config.auto_reboot);
 
     Ok(())
 }
@@ -103,251 +85,88 @@ fn get_fedora_version() -> String {
     return fedora_version.to_string();
 }
 
-// Logic to install silverblue with any valid desktop environment
-fn install_silverblue(vers: String, dsk_env: String, restart: bool) {
-    println!("Installing, please be patient...");
-
-    // ToDo: Versions outside of latest using the vers variable
-
+fn get_img_name(dsk_env: String) -> String {
+    let img_env: String;
+    
     match dsk_env.as_str() {
         "gnome" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/silverblue:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start the rebase process...\nTry again!");
-
-            if install_process.success() {
-                if restart {
-                    reboot_computer();
-                } else {
-                    println!("Reboot your computer with systemctl reboot!");
-                }
-            } else {
-                println!("Rebasing failed with status: {}", install_process);
-            }
+            img_env = "silverblue".to_string();
         }
-        "lxqt" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/lxqt:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start rebase process...\nTry again!");
-
-            if install_process.success() {
-                if restart {
-                    reboot_computer();
-                } else {
-                    println!("Reboot your computer with systemctl reboot!");
-                }
-            } else {
-                println!("Rebasing failed with status: {}", install_process);
-            }
-        }
-        "mate" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/mate:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start rebase process...\nTry again!");
-
-            if install_process.success() {
-                if restart {
-                    reboot_computer();
-                } else {
-                    println!("Reboot your computer with systemctl reboot!");
-                }
-            } else {
-                println!("Rebasing failed with status: {}", install_process);
-            }
+        "lxqt" | "mate "=> {
+            img_env = dsk_env;
         }
         "xfce" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/vauxite:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start rebase process...\nTry again!");
-
-            if install_process.success() {
-                if restart {
-                    reboot_computer();
-                } else {
-                    println!("Reboot your computer with systemctl reboot!");
-                }
-            } else {
-                println!("Rebasing failed with status: {}", install_process);
-            }
+            img_env = "vauxite".to_string();
+        }
+        "kde" => {
+            img_env = "kinoite".to_string();
         }
         _ => {
             eprintln!("You entered an incorrect desktop environment!\nTry again!");
             std::process::exit(1);
         }
     }
+
+    img_env
 }
 
-// Installs silverblue nvidia version with any valid desktop environment
-fn install_silverblue_nvidia(vers: String, dsk_env: String, restart: bool) {
+// Installs the image with any valid desktop environment and version (including nvidia)
+fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
     println!("Installing, please be patient...");
 
-     match dsk_env.as_str() {
-        "gnome" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/silverblue-nvidia:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Rebase process failed...\nTry again!");
-
-            if install_process.success() {
-                let kargs_success = set_kargs();
-
-                if kargs_success && restart {
-                    reboot_computer();
-                } else if kargs_success {
-                    println!("Kargs set successfully, reboot your computer manually using systemctl reboot!");
-                } else {
-                    println!("Kargs were not set succesfully, you may have to set them manually!");
-                }
-            }
-
-        }
-        "lxqt" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/lxqt-nvidia:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start rebase process...\nTry again!");
-
-            if install_process.success() {
-                let kargs_success = set_kargs();
-
-                if kargs_success && restart {
-                    reboot_computer();
-                } else if kargs_success {
-                    println!("Kargs set successfully, reboot your computer manually using systemctl reboot!");
-                } else {
-                    println!("Kargs were not set succesfully, you may have to set them manually!");
-                }
-            }
-        }
-        "mate" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/mate-nvidia:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start rebase process...\nTry again!");
-
-            if install_process.success() {
-                let kargs_success = set_kargs();
-
-                if kargs_success && restart {
-                    reboot_computer();
-                } else if kargs_success {
-                    println!("Kargs set successfully, reboot your computer manually using systemctl reboot!");
-                } else {
-                    println!("Kargs were not set succesfully, you may have to set them manually!");
-                }
-            }
-        }
-        "xfce" => {
-            let install_process = Command::new("rpm-ostree")
-                .arg("rebase")
-                .arg("ostree-unverified-registry:ghcr.io/ublue-os/vauxite-nvidia:latest")
-                .arg("--experimental")
-                .status()
-                .expect("Could not start the rebase process...\nTry again!");
-
-            if install_process.success() {
-                let kargs_success = set_kargs();
-
-                if kargs_success && restart {
-                    reboot_computer();
-                } else if kargs_success {
-                    println!("Kargs set successfully, reboot your computer manually using systemctl reboot!");
-                } else {
-                    println!("Kargs were not set succesfully, you may have to set them manually!");
-                }
-            }
-        }
-        _ => {
-            eprintln!("You entered an incorrect desktop environment!\nTry again!");
-            std::process::exit(1);
-        }
+    let mut img_env = get_img_name(dsk_env);
+    if is_nvidia {
+        img_env.push_str("-nvidia");
     }
-}
-
-// Installs kinoite image
-fn install_kinoite(vers: String, restart: bool) {
-    println!("Installing, please be patient...");
-
     let install_process = Command::new("rpm-ostree")
         .arg("rebase")
-        .arg("ostree-unverified-registry:ghcr.io/ublue-os/kinoite:latest")
-        .arg("--experimental")
-        .status()
-        .expect("Could not start the rebase process...\n Try again!");
-
-    if install_process.success() {
-        if restart {
-            reboot_computer();
-        } else {
-            println!("Your computer is ready to be rebooted manually using systemctl reboot!");
-        }
-    }
-}
-
-// Installs Kinoite nvidia image
-fn install_kinoite_nvidia(vers: String, restart: bool) {
-    println!("Installing, please be patient...");
-
-    let install_process = Command::new("rpm-ostree")
-        .arg("rebase")
-        .arg("ostree-unverified-registry:ghcr.io/ublue-os/kinoite-nvidia:latest")
+        .arg(format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers))
         .arg("--experimental")
         .status()
         .expect("Could not start the rebase process...\nTry again!");
 
     if install_process.success() {
-        let kargs_success = set_kargs();
-
-        if kargs_success && restart {
-            reboot_computer();
-        } else if kargs_success {
-            println!("Kargs set successfully, reboot your computer manually using systemctl reboot!");
+        if is_nvidia {
+            let kargs_success = set_kargs(true);
+            if kargs_success {
+                reboot_computer(restart);
+            }
         } else {
-            println!("Kargs were not set succesfully, you may have to set them manually!");
+            reboot_computer(restart);
         }
+    } else {
+        println!("Rebasing failed with status: {}", install_process);
     }
 }
 
-fn set_kargs() -> bool {
+fn set_kargs(do_kargs_set: bool) -> bool {
     // Set kargs after the rebase process
-    let kargs = Command::new("rpm-ostree")
-        .arg("kargs")
-        .arg("--append=rd.driver.blacklist=nouveau")
-        .arg("--append=modprobe.blacklist=nouveau")
-        .arg("--append=nvidia-drm.modeset=1")
-        .status()
-        .expect("Could not start blacklisting nouveau...");
+    if do_kargs_set {
+        let kargs = Command::new("rpm-ostree")
+            .arg("kargs")
+            .arg("--append=rd.driver.blacklist=nouveau")
+            .arg("--append=modprobe.blacklist=nouveau")
+            .arg("--append=nvidia-drm.modeset=1")
+            .status()
+            .expect("Could not set kargs...");
 
-    kargs.success()
+        return kargs.success();
+    }
+
+    false
 }
 
-fn reboot_computer() {
-    println!("{}", "Rebooting...");
-    // reboot the reboot_computer
-    let _reboot = Command::new("systemctl")
-        .arg("reboot")
-        .spawn()
-        .expect("Could not reboot the computer, manually reboot for changes to take effect!")
-        .wait()
-        .expect("Could not reboot the computer, manually reboot for changes to take effect!");
+fn reboot_computer(do_reboot: bool) {
+    if do_reboot {
+        println!("{}", "Rebooting...");
+        // reboot the reboot_computer
+        let _reboot = Command::new("systemctl")
+            .arg("reboot")
+            .spawn()
+            .expect("Could not reboot the computer, manually reboot for changes to take effect!")
+            .wait()
+            .expect("Could not reboot the computer, manually reboot for changes to take effect!");
+    } else {
+        println!("Your computer is ready to be rebooted manually using systemctl reboot!");
+    }
 }
-
-
