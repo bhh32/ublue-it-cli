@@ -115,13 +115,19 @@ fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
     println!("Installing, please be patient...");
 
     let mut img_env = get_img_name(dsk_env);
+
     if is_nvidia {
         img_env.push_str("-nvidia");
+    } else {
+        img_env.push_str("-main");
     }
-    let install_process = Command::new("rpm-ostree")
-        .arg("rebase")
-        .arg(format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers))
-        .arg("--experimental")
+
+    let img_arg = format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers);
+
+    println!("rpm-ostree rebase {}", img_arg);
+
+    let install_process = Command::new("bash")
+        .args(&["-c", format!("rpm-ostree rebase --experimental {}", img_arg).as_str()])
         .status()
         .expect("Could not start the rebase process...\nTry again!");
 
@@ -142,6 +148,15 @@ fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
 fn set_kargs(do_kargs_set: bool) -> bool {
     // Set kargs after the rebase process
     if do_kargs_set {
+        Command::new("rpm-ostree")
+            .arg("kargs")
+            .arg("--delete-if-exists=rd.driver.blacklist=nouveau")
+            .arg("--delete-if-exists=modprobe.blacklist=nouveau")
+            .arg("--delete-if-exists=nvidia-drm.modeset=1")
+            .status()
+            .expect("Could not cleanup kargs...");
+
+
         let kargs = Command::new("rpm-ostree")
             .arg("kargs")
             .arg("--append=rd.driver.blacklist=nouveau")
@@ -159,7 +174,8 @@ fn set_kargs(do_kargs_set: bool) -> bool {
 fn reboot_computer(do_reboot: bool) {
     if do_reboot {
         println!("{}", "Rebooting...");
-        // reboot the reboot_computer
+        
+        // reboot the computer
         let _reboot = Command::new("systemctl")
             .arg("reboot")
             .spawn()
