@@ -82,13 +82,16 @@ fn get_fedora_version() -> String {
     let output = get_version.wait_with_output().unwrap();
     let fedora_version = str::from_utf8(&output.stdout).unwrap();
 
-    return fedora_version.to_string();
+    fedora_version.to_string()
 }
 
-fn get_img_name(dsk_env: String) -> String {
-    let img_env: String;
+fn get_img_name(dsk_env: String, is_nvidia: bool) -> String {
+    let mut img_env: String;
     
     match dsk_env.as_str() {
+        "bluefin" => {
+            img_env = "bluefin".to_string();
+        }
         "gnome" => {
             img_env = "silverblue".to_string();
         }
@@ -107,6 +110,12 @@ fn get_img_name(dsk_env: String) -> String {
         }
     }
 
+    if !is_nvidia && img_env != "bluefin" {
+        img_env.push_str("-main");
+    } else if is_nvidia {
+        img_env.push_str("-nvidia");
+    }
+    
     img_env
 }
 
