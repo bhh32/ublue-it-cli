@@ -123,7 +123,7 @@ fn get_img_name(dsk_env: String, is_nvidia: bool) -> String {
 fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
     println!("Installing, please be patient...");
 
-    let mut img_env = get_img_name(dsk_env, is_nvidia);
+    let img_env = get_img_name(dsk_env, is_nvidia);
 
     let img_arg = format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers);
 
