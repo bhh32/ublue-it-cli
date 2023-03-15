@@ -24,7 +24,7 @@ pub fn get_args() -> GenResult<Config> {
             Arg::with_name("desktop_env")
             .short("d")
             .long("desktop_env")
-            .help("Choices are Gnome (default), KDE, LXQt, Mate, or XFCE.\n*NOTE: If KDE is chosen, Kinoite will be the base OS image instead of Silverblue.")
+            .help("Choices are Bluefin (Silverblue for Ubuntu Ex-Pats), Gnome (default), KDE, LXQt, Mate, or XFCE.\n*NOTE: If KDE is chosen, Kinoite will be the base OS image instead of Silverblue.")
             .takes_value(true)
             .default_value("gnome"),
         )
@@ -115,7 +115,7 @@ fn get_img_name(dsk_env: String, is_nvidia: bool) -> String {
     } else if is_nvidia {
         img_env.push_str("-nvidia");
     }
-    
+
     img_env
 }
 
@@ -123,13 +123,7 @@ fn get_img_name(dsk_env: String, is_nvidia: bool) -> String {
 fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
     println!("Installing, please be patient...");
 
-    let mut img_env = get_img_name(dsk_env);
-
-    if is_nvidia {
-        img_env.push_str("-nvidia");
-    } else {
-        img_env.push_str("-main");
-    }
+    let mut img_env = get_img_name(dsk_env, is_nvidia);
 
     let img_arg = format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers);
 
