@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use clap::{App, Arg};
 use std::error::Error;
 use std::process::{Command, Stdio};
@@ -57,10 +60,11 @@ pub fn get_args() -> GenResult<Config> {
 
 // The main logic
 pub fn run(config: Config) -> GenResult<()> {
-    let fedora_version: String = get_fedora_version();
+    // Set the desktop_env to lowercase in the case it wasn't already
     let de: String = config.desktop_env[0].clone().to_lowercase();
 
-    rebase_img(fedora_version, de, config.has_nvidia, config.auto_reboot);
+    // Rebase the image
+    rebase_img(de, config.has_nvidia,config.auto_reboot);
 
     Ok(())
 }
@@ -119,31 +123,44 @@ fn get_img_name(dsk_env: String, is_nvidia: bool) -> String {
     img_env
 }
 
+fn create_cmd_string(dsk_env: String, is_nvidia: bool) -> String {
+    // Get the version of Fedora
+    let vers = get_fedora_version();
+    // Get the proper image name we're rebasing to
+    let img_env = get_img_name(dsk_env, is_nvidia);
+    
+    // Format the version and image name together into on string and return it
+    format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers)
+}
+
 // Installs the image with any valid desktop environment and version (including nvidia)
-fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
+fn rebase_img(dsk_env: String, is_nvidia: bool, restart: bool) {
     println!("Installing, please be patient...");
 
-    let img_env = get_img_name(dsk_env, is_nvidia);
+    // Create the command string
+    let cmd_str = create_cmd_string(dsk_env, is_nvidia);
 
-    let img_arg = format!("ostree-unverified-registry:ghcr.io/ublue-os/{}:{}", img_env, vers);
-
-    println!("rpm-ostree rebase {}", img_arg);
-
+    // Run the command in the bash shell
     let install_process = Command::new("bash")
-        .args(&["-c", format!("rpm-ostree rebase --experimental {}", img_arg).as_str()])
+        .args(&["-c", format!("rpm-ostree rebase --experimental {}", cmd_str).as_str()])
         .status()
         .expect("Could not start the rebase process...\nTry again!");
 
+    // If the rebase process was successful
     if install_process.success() {
         if is_nvidia {
+            // If it's a Nvidia image set the kargs
             let kargs_success = set_kargs(true);
             if kargs_success {
+                // If setting the kargs is successful reboot if the flag is true
                 reboot_computer(restart);
             }
         } else {
+            // Reboot if the flag is true
             reboot_computer(restart);
         }
     } else {
+        // Print an error with the install process status
         println!("Rebasing failed with status: {}", install_process);
     }
 }
@@ -151,6 +168,7 @@ fn rebase_img(vers: String, dsk_env: String, is_nvidia: bool, restart: bool) {
 fn set_kargs(do_kargs_set: bool) -> bool {
     // Set kargs after the rebase process
     if do_kargs_set {
+        // Remove the kargs if they already exist (prevents double kargs)
         Command::new("rpm-ostree")
             .arg("kargs")
             .arg("--delete-if-exists=rd.driver.blacklist=nouveau")
@@ -159,7 +177,7 @@ fn set_kargs(do_kargs_set: bool) -> bool {
             .status()
             .expect("Could not cleanup kargs...");
 
-
+        // Set the kargs options
         let kargs = Command::new("rpm-ostree")
             .arg("kargs")
             .arg("--append=rd.driver.blacklist=nouveau")
@@ -174,6 +192,7 @@ fn set_kargs(do_kargs_set: bool) -> bool {
     false
 }
 
+// Reboot the computer
 fn reboot_computer(do_reboot: bool) {
     if do_reboot {
         println!("{}", "Rebooting...");
