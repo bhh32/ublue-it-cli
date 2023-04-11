@@ -42,7 +42,6 @@ pub fn get_args() -> GenResult<Config> {
         )
         .arg(
             Arg::with_name("nvidia_vers")
-            .short("nv")
             .long("nvidia_vers")
             .help("Use this flag to specify the version of the Nvidia driver you want to install.\nDefault is the latest version.\n
                 Choices are 470, 525, current, latest.")
