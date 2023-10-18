@@ -23,7 +23,7 @@ pub struct Config {
 pub fn get_args() -> GenResult<Config> {
     let matches = App::new("ublue_it_cli")
         .version("0.1.0")
-        .author("Bryan Hyland <bryan.hyland32@gmail.com")
+        .author("Bryan Hyland <bryan.hyland32@gmail.com>")
         .about("Rust CLI for ublue.it distro tool for Fedora Silverblue and Fedora Kinoite.")
         .arg(
             Arg::with_name("desktop_env")
